@@ -1,0 +1,13 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "wkustation",
+	"compatibility_date": "2026-03-12",
+	"pages_build_output_dir": "dist",
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "wkustation-db",
+			"database_id": "46cbeb27-9b62-4999-9da3-36b562ba43f5"
+		}
+	]
+}

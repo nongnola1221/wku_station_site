@@ -1,0 +1,155 @@
+.page--admin .panel {
+  margin-top: 18px;
+}
+
+.admin-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.admin-hero h1 {
+  margin-top: 12px;
+  font-size: clamp(2rem, 3vw, 3rem);
+}
+
+.admin-hero p {
+  margin-top: 8px;
+  color: #5a7095;
+}
+
+.admin-hero__actions,
+.admin-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.admin-toolbar__toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 240px;
+}
+
+.admin-table-wrap {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(120, 150, 224, 0.14);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(43, 73, 139, 0.1);
+}
+
+.station-control__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.station-control__card {
+  border-radius: 24px;
+  border: 1px solid rgba(120, 150, 224, 0.16);
+  background: rgba(246, 249, 255, 0.94);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.station-control__card--blocked {
+  background: rgba(255, 244, 244, 0.96);
+  border-color: rgba(232, 118, 118, 0.2);
+}
+
+.station-control__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.station-control__header p,
+.station-control__reason {
+  color: #5a7095;
+}
+
+.station-control__reason {
+  min-height: 44px;
+  line-height: 1.5;
+}
+
+.admin-timetable {
+  display: grid;
+  grid-template-columns: 140px repeat(7, minmax(180px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  align-items: stretch;
+}
+
+.admin-timetable__row-fragment {
+  display: contents;
+}
+
+.admin-timetable__header,
+.admin-timetable__hour,
+.admin-cell {
+  min-height: 88px;
+  border-radius: 18px;
+  border: 1px solid rgba(117, 149, 223, 0.14);
+  background: rgba(246, 249, 255, 0.92);
+  padding: 14px;
+}
+
+.admin-timetable__header {
+  font-weight: 800;
+  color: #2e4e86;
+  background: rgba(233, 241, 255, 0.94);
+}
+
+.admin-timetable__hour {
+  color: #6780a8;
+  display: grid;
+  place-items: center start;
+}
+
+.admin-cell {
+  text-align: left;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  display: flex;
+  align-items: stretch;
+}
+
+.admin-cell--reserved {
+  background: linear-gradient(160deg, rgba(237, 244, 255, 0.96), rgba(218, 233, 255, 0.96));
+}
+
+.admin-cell__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.admin-cell__content span,
+.admin-cell__empty {
+  color: #6f83a7;
+}
+
+@media (max-width: 768px) {
+  .admin-hero,
+  .admin-hero__actions,
+  .admin-toolbar,
+  .modal__summary,
+  .modal__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .station-control__grid {
+    grid-template-columns: 1fr;
+  }
+}
