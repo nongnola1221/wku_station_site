@@ -1,0 +1,2 @@
+ALTER TABLE stations ADD COLUMN is_blocked INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE stations ADD COLUMN block_reason TEXT DEFAULT '';
