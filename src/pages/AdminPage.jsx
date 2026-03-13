@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarDays, ListFilter, LogOut, Search } from 'lucide-react'
 import { AdminExpandableSection } from '../components/AdminExpandableSection'
 import { AdminLoginForm } from '../components/AdminLoginForm'
@@ -16,6 +16,7 @@ import { api } from '../lib/api'
 import { getToday } from '../lib/date'
 
 export function AdminPage() {
+  const lastInteractionRef = useRef(Date.now())
   const [token, setToken] = useState(localStorage.getItem(ADMIN_TOKEN_KEY) ?? '')
   const [credentials, setCredentials] = useState({ username: 'admin', password: '' })
   const [loginError, setLoginError] = useState('')
@@ -103,16 +104,27 @@ export function AdminPage() {
 
   const refreshTodaySummaryIfNeeded = useCallback(async () => {
     if (!todaySummaryOpen) return
+    if (date === getToday()) {
+      setTodayReservations(reservations)
+      return
+    }
     const response = await api.getAdminReservations(getToday(), token, { fresh: true })
     setTodayReservations(response.data.reservations)
-  }, [todaySummaryOpen, token])
+  }, [date, reservations, todaySummaryOpen, token])
 
   useEffect(() => {
     if (!token || !dashboardReady) return undefined
 
     let polling = false
+    const markInteraction = () => {
+      lastInteractionRef.current = Date.now()
+    }
+
     const intervalId = window.setInterval(async () => {
-      if (document.visibilityState !== 'visible' || polling) return
+      const isVisible = document.visibilityState === 'visible'
+      const interactedRecently = Date.now() - lastInteractionRef.current < 60000
+
+      if (!isVisible || !interactedRecently || polling) return
       polling = true
       try {
         await fetchDashboard(date, token, { silent: true })
@@ -120,10 +132,17 @@ export function AdminPage() {
       } finally {
         polling = false
       }
-    }, 1000)
+    }, 5000)
+
+    window.addEventListener('pointerdown', markInteraction)
+    window.addEventListener('keydown', markInteraction)
+    window.addEventListener('focus', markInteraction)
 
     return () => {
       window.clearInterval(intervalId)
+      window.removeEventListener('pointerdown', markInteraction)
+      window.removeEventListener('keydown', markInteraction)
+      window.removeEventListener('focus', markInteraction)
     }
   }, [dashboardReady, date, fetchDashboard, refreshTodaySummaryIfNeeded, token])
 

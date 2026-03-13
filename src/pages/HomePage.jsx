@@ -249,7 +249,7 @@ export function HomePage() {
     let checking = false
 
     const checkForAdminUpdates = async () => {
-      if (document.visibilityState !== 'visible' || checking) return
+      if (document.visibilityState !== 'visible' || checking || showRefreshNotice) return
       checking = true
       try {
         const bootstrapResponse = await api.getBootstrap(date, { fresh: true })
@@ -264,14 +264,14 @@ export function HomePage() {
       }
     }
 
-    const intervalId = window.setInterval(checkForAdminUpdates, 15000)
+    const intervalId = window.setInterval(checkForAdminUpdates, 60000)
     window.addEventListener('focus', checkForAdminUpdates)
 
     return () => {
       window.clearInterval(intervalId)
       window.removeEventListener('focus', checkForAdminUpdates)
     }
-  }, [date, snapshotValue])
+  }, [date, showRefreshNotice, snapshotValue])
 
   const handleCancelMyReservation = async (reservationId) => {
     try {
