@@ -1,7 +1,26 @@
+import { useMemo, useState } from 'react'
 import { Ban, PlayCircle } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 
 export function AdminStationControlPanel({ stations, onToggle, loading }) {
+  const [editingStationId, setEditingStationId] = useState(null)
+  const [reasonDraft, setReasonDraft] = useState('')
+
+  const editingStation = useMemo(
+    () => stations.find((station) => station.id === editingStationId) ?? null,
+    [editingStationId, stations],
+  )
+
+  const openInlineEditor = (station) => {
+    setEditingStationId(station.id)
+    setReasonDraft(station.isBlocked ? '' : station.blockReason || '')
+  }
+
+  const closeInlineEditor = () => {
+    setEditingStationId(null)
+    setReasonDraft('')
+  }
+
   return (
     <section className="panel station-control">
       <div className="section-heading">
@@ -31,12 +50,41 @@ export function AdminStationControlPanel({ stations, onToggle, loading }) {
             <button
               type="button"
               className={`button ${station.isBlocked ? 'button--primary' : 'button--danger-soft'}`}
-              onClick={() => onToggle(station)}
+              onClick={() => openInlineEditor(station)}
               disabled={loading}
             >
               {station.isBlocked ? <PlayCircle size={16} /> : <Ban size={16} />}
               {station.isBlocked ? '스테이션 재개' : '스테이션 중지'}
             </button>
+
+            {editingStation?.id === station.id ? (
+              <div className="station-control__editor">
+                {!station.isBlocked ? (
+                  <label className="field">
+                    <span>중지 사유</span>
+                    <textarea
+                      value={reasonDraft}
+                      onChange={(event) => setReasonDraft(event.target.value)}
+                      placeholder="예: 행사 운영으로 인해 잠시 이용이 중지되었습니다."
+                      rows={3}
+                    />
+                  </label>
+                ) : null}
+                <div className="station-control__actions">
+                  <button
+                    type="button"
+                    className={`button ${station.isBlocked ? 'button--primary' : 'button--danger-soft'}`}
+                    onClick={() => onToggle(station, reasonDraft, closeInlineEditor)}
+                    disabled={loading}
+                  >
+                    {station.isBlocked ? '이 스테이션을 재개합니다' : '이 스테이션을 중지합니다'}
+                  </button>
+                  <button type="button" className="button button--ghost" onClick={closeInlineEditor} disabled={loading}>
+                    닫기
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </article>
         ))}
       </div>

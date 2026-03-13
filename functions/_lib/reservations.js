@@ -3,6 +3,8 @@ export const GENERAL_CLOSE_HOUR = 17
 export const EXAM_OPEN_HOUR = 0
 export const EXAM_CLOSE_HOUR = 24
 export const MAX_RESERVATION_HOURS = 2
+export const RESERVATION_CONFLICT_MESSAGE =
+  '죄송합니다. 해당 시간은 방금 다른 사용자가 먼저 예약했습니다. 다른 시간을 선택해주세요.'
 
 export function normalizePhone(phone) {
   return String(phone ?? '').replace(/\D/g, '')
@@ -282,7 +284,7 @@ export async function assertReservationRules(env, reservationData, options = {})
   })
 
   if (overlappingReservation) {
-    return '같은 날짜와 스테이션에 겹치는 예약이 이미 존재합니다.'
+    return RESERVATION_CONFLICT_MESSAGE
   }
 
   const usageHours = await getPhoneUsageHours(env, {

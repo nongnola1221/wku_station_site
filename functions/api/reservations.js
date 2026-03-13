@@ -5,6 +5,7 @@ import {
   buildAvailability,
   clearReservedTimeSlots,
   getExamMode,
+  RESERVATION_CONFLICT_MESSAGE,
   reserveTimeSlots,
   validatePhone,
   validateReservationInput,
@@ -86,7 +87,7 @@ export async function onRequestPost(context) {
       .bind(insertResult.meta.last_row_id)
       .run()
     await clearReservedTimeSlots(context.env, insertResult.meta.last_row_id)
-    return fail(409, '같은 날짜와 스테이션에 겹치는 예약이 이미 존재합니다.')
+    return fail(409, RESERVATION_CONFLICT_MESSAGE)
   }
 
   const availability = await buildAvailability(context.env, normalized.reservationDate)

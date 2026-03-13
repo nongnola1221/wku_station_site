@@ -14,6 +14,14 @@ import { useReservationData } from '../hooks/useReservationData'
 import { formatHourRange, getToday } from '../lib/date'
 import { clearStoredReservationTokens, getStoredReservationTokens, storeReservationToken } from '../lib/reservationTokens'
 
+function buildPublicSnapshotValue({ stations, settings, availability }) {
+  return JSON.stringify({
+    stations: stations ?? [],
+    settings: settings ?? null,
+    availability: availability ?? null,
+  })
+}
+
 export function HomePage() {
   const MotionDiv = motion.div
   const stationRef = useRef(null)
@@ -21,7 +29,7 @@ export function HomePage() {
   const formRef = useRef(null)
   const councilTapTimeoutRef = useRef(null)
   const councilTapCountRef = useRef(0)
-  const { date, setDate, stations, settings, availability, loading, error, refetch } = useReservationData(getToday())
+  const { date, setDate, stations, settings, availability, loading, error, snapshotValue, refetch } = useReservationData(getToday())
   const [form, setForm] = useState(DEFAULT_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
@@ -31,6 +39,7 @@ export function HomePage() {
   const [myReservationsOpen, setMyReservationsOpen] = useState(false)
   const [myReservationsLoaded, setMyReservationsLoaded] = useState(false)
   const [showCouncilToast, setShowCouncilToast] = useState(false)
+  const [showRefreshNotice, setShowRefreshNotice] = useState(false)
 
   const selectedStationAvailability = useMemo(
     () => availability?.stations?.find((station) => station.id === form.stationId),
@@ -234,6 +243,36 @@ export function HomePage() {
     fetchMyReservations()
   }, [myReservationsLoaded])
 
+  useEffect(() => {
+    if (!snapshotValue) return undefined
+
+    let checking = false
+
+    const checkForAdminUpdates = async () => {
+      if (document.visibilityState !== 'visible' || checking) return
+      checking = true
+      try {
+        const bootstrapResponse = await api.getBootstrap(date, { fresh: true })
+        const nextSnapshotValue = buildPublicSnapshotValue(bootstrapResponse.data)
+        if (nextSnapshotValue !== snapshotValue) {
+          setShowRefreshNotice(true)
+        }
+      } catch {
+        // Ignore background refresh hint errors.
+      } finally {
+        checking = false
+      }
+    }
+
+    const intervalId = window.setInterval(checkForAdminUpdates, 15000)
+    window.addEventListener('focus', checkForAdminUpdates)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', checkForAdminUpdates)
+    }
+  }, [date, snapshotValue])
+
   const handleCancelMyReservation = async (reservationId) => {
     try {
       setSubmitting(true)
@@ -348,6 +387,22 @@ export function HomePage() {
           disabled={settings?.operationStopped}
         />
       </AnimatedSection>
+
+      {showRefreshNotice ? (
+        <div className="floating-refresh-notice" role="status" aria-live="polite">
+          <div>
+            <strong>예약 정보가 변경되었습니다.</strong>
+            <p>새로고침하면 최신 예약 현황을 확인할 수 있습니다.</p>
+          </div>
+          <button
+            type="button"
+            className="button button--primary"
+            onClick={() => window.location.reload()}
+          >
+            새로고침
+          </button>
+        </div>
+      ) : null}
 
       <DateTimeSelectionModal
         open={dateTimeModalOpen}

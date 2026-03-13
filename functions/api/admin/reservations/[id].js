@@ -4,6 +4,7 @@ import {
   assertReservationRules,
   clearReservedTimeSlots,
   getExamMode,
+  RESERVATION_CONFLICT_MESSAGE,
   reserveTimeSlots,
   validateReservationInput,
 } from '../../../_lib/reservations.js'
@@ -117,7 +118,7 @@ export async function onRequestPatch(context) {
       endHour: existing.end_hour,
     })
 
-    return fail(409, '같은 날짜와 스테이션에 겹치는 예약이 이미 존재합니다.')
+    return fail(409, RESERVATION_CONFLICT_MESSAGE)
   }
 
   return ok({
