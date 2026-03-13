@@ -81,6 +81,19 @@
   line-height: 1.5;
 }
 
+.station-control__editor {
+  display: grid;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(120, 150, 224, 0.14);
+}
+
+.station-control__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .admin-timetable {
   display: grid;
   grid-template-columns: 140px repeat(7, minmax(180px, 1fr));

@@ -6,7 +6,6 @@ import { AdminOperationStatusModal } from '../components/AdminOperationStatusMod
 import { AdminPasswordForm } from '../components/AdminPasswordForm'
 import { AdminSiteSettingsForm } from '../components/AdminSiteSettingsForm'
 import { AdminStationControlPanel } from '../components/AdminStationControlPanel'
-import { AdminStationStatusModal } from '../components/AdminStationStatusModal'
 import { AdminTodaySummaryModal } from '../components/AdminTodaySummaryModal'
 import { ExamModeToggle } from '../components/ExamModeToggle'
 import { AdminReservationTable } from '../components/AdminReservationTable'
@@ -37,9 +36,6 @@ export function AdminPage() {
   const [todayReservations, setTodayReservations] = useState([])
   const [operationModalOpen, setOperationModalOpen] = useState(false)
   const [operationReason, setOperationReason] = useState('')
-  const [stationModalOpen, setStationModalOpen] = useState(false)
-  const [selectedStation, setSelectedStation] = useState(null)
-  const [stationReason, setStationReason] = useState('')
   const [siteSettingsForm, setSiteSettingsForm] = useState({
     serviceTitle: '',
     councilLabel: '',
@@ -110,6 +106,26 @@ export function AdminPage() {
     const response = await api.getAdminReservations(getToday(), token, { fresh: true })
     setTodayReservations(response.data.reservations)
   }, [todaySummaryOpen, token])
+
+  useEffect(() => {
+    if (!token || !dashboardReady) return undefined
+
+    let polling = false
+    const intervalId = window.setInterval(async () => {
+      if (document.visibilityState !== 'visible' || polling) return
+      polling = true
+      try {
+        await fetchDashboard(date, token, { silent: true })
+        await refreshTodaySummaryIfNeeded()
+      } finally {
+        polling = false
+      }
+    }, 1000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [dashboardReady, date, fetchDashboard, refreshTodaySummaryIfNeeded, token])
 
   const filteredReservations = useMemo(() => {
     if (!query.trim()) return reservations
@@ -213,22 +229,20 @@ export function AdminPage() {
     }
   }
 
-  const handleStationStatus = async () => {
-    if (!selectedStation) return
+  const handleStationStatus = async (station, reason, closeInlineEditor) => {
+    if (!station) return
     try {
       setActionLoading(true)
       setActionError('')
       await api.patchAdminStation(
-        selectedStation.id,
+        station.id,
         {
-          isBlocked: !selectedStation.isBlocked,
-          reason: stationReason,
+          isBlocked: !station.isBlocked,
+          reason,
         },
         token,
       )
-      setStationModalOpen(false)
-      setSelectedStation(null)
-      setStationReason('')
+      closeInlineEditor?.()
       await fetchDashboard(date, token, { includeMeta: true, silent: true })
       setActionError('')
     } catch (stationError) {
@@ -377,11 +391,9 @@ export function AdminPage() {
             <AdminStationControlPanel
               stations={stations}
               loading={actionLoading}
-              onToggle={(station) => {
+              onToggle={(station, reason, closeInlineEditor) => {
                 setActionError('')
-                setSelectedStation(station)
-                setStationReason(station.isBlocked ? '' : station.blockReason || '')
-                setStationModalOpen(true)
+                handleStationStatus(station, reason, closeInlineEditor)
               }}
             />
           </AdminExpandableSection>
@@ -430,24 +442,9 @@ export function AdminPage() {
         loading={actionLoading}
       />
 
-      <AdminStationStatusModal
-        open={stationModalOpen}
-        station={selectedStation}
-        blocking={!selectedStation?.isBlocked}
-        reason={stationReason}
-        onReasonChange={setStationReason}
-        onClose={() => {
-          setStationModalOpen(false)
-          setSelectedStation(null)
-          setStationReason('')
-        }}
-        onConfirm={handleStationStatus}
-        loading={actionLoading}
-      />
-
       <AdminExpandableSection
-        title="운영자 설정"
-        description="문구 수정, 총학생회 교체 대응, 관리자 비밀번호 변경"
+        title="문구 수정"
+        description="사이트 문구와 관리자 비밀번호를 관리합니다"
         open={settingsOpen}
         onToggle={() => setSettingsOpen((current) => !current)}
       >
