@@ -1,8 +1,19 @@
 import { fail, ok, readJson } from '../../_lib/http.js'
+import { enforceRateLimit } from '../../_lib/rate-limit.js'
 import { hashAccessToken, normalizeAccessTokens } from '../../_lib/reservation-access.js'
 import { clearReservedTimeSlots } from '../../_lib/reservations.js'
 
 export async function onRequestPost(context) {
+  const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
+    key: 'cancel-my-reservation',
+    limit: 3,
+    windowMs: 30_000,
+    message: '예약 취소 요청이 너무 빠르게 반복되고 있습니다. 잠시 후 다시 시도해주세요.',
+  })
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const payload = await readJson(context.request)
   if (!payload) {
     return fail(400, '요청 본문이 JSON 형식이어야 합니다.')
