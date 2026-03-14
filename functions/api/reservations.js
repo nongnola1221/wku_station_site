@@ -1,4 +1,5 @@
 import { fail, ok, readJson } from '../_lib/http.js'
+import { incrementMetric } from '../_lib/metrics.js'
 import { enforceRateLimit } from '../_lib/rate-limit.js'
 import { createAccessToken, hashAccessToken } from '../_lib/reservation-access.js'
 import {
@@ -13,6 +14,8 @@ import {
 } from '../_lib/reservations.js'
 
 export async function onRequestPost(context) {
+  await incrementMetric(context.env, 'req:public:create-reservation')
+
   const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
     key: 'create-reservation',
     limit: 5,
