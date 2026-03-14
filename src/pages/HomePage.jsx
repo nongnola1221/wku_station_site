@@ -330,6 +330,7 @@ export function HomePage() {
         {error ? <div className="submit-message submit-message--error">{error}</div> : null}
         <StationSelector
           stations={stations}
+          availability={availability}
           selectedStationId={form.stationId}
           onChange={handleSelectStation}
         />
