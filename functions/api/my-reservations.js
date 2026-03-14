@@ -1,7 +1,18 @@
 import { fail, ok, readJson } from '../_lib/http.js'
+import { enforceRateLimit } from '../_lib/rate-limit.js'
 import { hashAccessToken, normalizeAccessTokens } from '../_lib/reservation-access.js'
 
 export async function onRequestPost(context) {
+  const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
+    key: 'my-reservations',
+    limit: 8,
+    windowMs: 15_000,
+    message: '예약 조회 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+  })
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const payload = await readJson(context.request)
   if (!payload) {
     return fail(400, '요청 본문이 JSON 형식이어야 합니다.')

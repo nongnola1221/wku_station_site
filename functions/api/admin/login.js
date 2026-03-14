@@ -8,7 +8,7 @@ export async function onRequestPost(context) {
 
   const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
     key: 'admin-login',
-    limit: 5,
+    limit: 4,
     windowMs: 60_000,
     message: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.',
   })

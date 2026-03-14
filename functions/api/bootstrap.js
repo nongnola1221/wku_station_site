@@ -64,7 +64,7 @@ export async function onRequestGet(context) {
 
   const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
     key: 'bootstrap',
-    limit: 20,
+    limit: 12,
     windowMs: 10_000,
     message: '요청이 너무 많습니다. 잠시 후 다시 새로고침해주세요.',
   })
