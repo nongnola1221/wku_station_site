@@ -307,8 +307,8 @@ export async function assertReservationRules(env, reservationData, options = {})
 
 export async function reserveTimeSlots(env, reservationId, reservationData) {
   const hourSlots = buildHourSlotsForReservation(reservationData.startHour, reservationData.endHour)
-  const statements = hourSlots.map((hourSlot) =>
-    env.DB.prepare(
+  for (const hourSlot of hourSlots) {
+    await env.DB.prepare(
       `
         INSERT INTO reservation_slots (
           reservation_id,
@@ -323,10 +323,11 @@ export async function reserveTimeSlots(env, reservationId, reservationData) {
         reservationData.stationId,
         reservationData.reservationDate,
         hourSlot,
-      ),
-  )
+      )
+      .run()
+  }
 
-  return env.DB.batch(statements)
+  return hourSlots.length
 }
 
 export async function clearReservedTimeSlots(env, reservationId) {
