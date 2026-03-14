@@ -17,7 +17,6 @@ import { api } from '../lib/api'
 import { getToday } from '../lib/date'
 
 export function AdminPage() {
-  const lastInteractionRef = useRef(Date.now())
   const metricsTapTimeoutRef = useRef(null)
   const metricsTapCountRef = useRef(0)
   const [token, setToken] = useState(localStorage.getItem(ADMIN_TOKEN_KEY) ?? '')
@@ -122,43 +121,6 @@ export function AdminPage() {
     const response = await api.getAdminUsage(authToken, { fresh: true })
     setUsageStats(response.data)
   }, [token])
-
-  useEffect(() => {
-    if (!token || !dashboardReady) return undefined
-
-    let polling = false
-    const markInteraction = () => {
-      lastInteractionRef.current = Date.now()
-    }
-
-    const intervalId = window.setInterval(async () => {
-      const isVisible = document.visibilityState === 'visible'
-      const interactedRecently = Date.now() - lastInteractionRef.current < 60000
-
-      if (!isVisible || !interactedRecently || polling) return
-      polling = true
-      try {
-        await fetchDashboard(date, token, { silent: true })
-        await refreshTodaySummaryIfNeeded()
-        if (usageOpen) {
-          await fetchUsageStats(token)
-        }
-      } finally {
-        polling = false
-      }
-    }, 5000)
-
-    window.addEventListener('pointerdown', markInteraction)
-    window.addEventListener('keydown', markInteraction)
-    window.addEventListener('focus', markInteraction)
-
-    return () => {
-      window.clearInterval(intervalId)
-      window.removeEventListener('pointerdown', markInteraction)
-      window.removeEventListener('keydown', markInteraction)
-      window.removeEventListener('focus', markInteraction)
-    }
-  }, [dashboardReady, date, fetchDashboard, fetchUsageStats, refreshTodaySummaryIfNeeded, token, usageOpen])
 
   const filteredReservations = useMemo(() => {
     if (!query.trim()) return reservations
