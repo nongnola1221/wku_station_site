@@ -3,6 +3,7 @@ export const GENERAL_CLOSE_HOUR = 17
 export const EXAM_OPEN_HOUR = 0
 export const EXAM_CLOSE_HOUR = 24
 export const MAX_RESERVATION_HOURS = 2
+export const MAX_DAILY_HOURS_PER_PERSON = 5
 export const RESERVATION_CONFLICT_MESSAGE =
   '죄송합니다. 해당 시간은 방금 다른 사용자가 먼저 예약했습니다. 다른 시간을 선택해주세요.'
 
@@ -12,6 +13,10 @@ export function normalizePhone(phone) {
 
 export function validatePhone(phone) {
   return /^01\d{8,9}$/.test(normalizePhone(phone))
+}
+
+export function normalizeRepresentativeName(name) {
+  return String(name ?? '').trim().replace(/\s+/g, ' ')
 }
 
 export function isValidDate(value) {
@@ -109,18 +114,18 @@ export async function findOverlappingReservation(env, { stationId, reservationDa
   return result ?? null
 }
 
-export async function getPhoneUsageHours(env, { phone, reservationDate, excludeReservationId }) {
+export async function getRepresentativeUsageHours(env, { representativeName, reservationDate, excludeReservationId }) {
   const result = await env.DB.prepare(
     `
       SELECT COALESCE(SUM(duration_hours), 0) AS total_hours
       FROM reservations
-      WHERE phone = ?
+      WHERE LOWER(TRIM(representative_name)) = LOWER(TRIM(?))
         AND reservation_date = ?
         AND status = 'confirmed'
         AND (? IS NULL OR id != ?)
     `,
   )
-    .bind(normalizePhone(phone), reservationDate, excludeReservationId ?? null, excludeReservationId ?? null)
+    .bind(normalizeRepresentativeName(representativeName), reservationDate, excludeReservationId ?? null, excludeReservationId ?? null)
     .first()
 
   return Number(result?.total_hours ?? 0)
@@ -170,7 +175,7 @@ export function validateReservationInput(payload, examMode) {
       endHour,
       durationHours,
       peopleCount,
-      representativeName: String(payload.representativeName ?? '').trim(),
+      representativeName: normalizeRepresentativeName(payload.representativeName),
       phone: normalizePhone(payload.phone),
       consentChecked: Boolean(payload.consentChecked),
       signatureConfirmed: Boolean(payload.signatureConfirmed),
@@ -287,14 +292,14 @@ export async function assertReservationRules(env, reservationData, options = {})
     return RESERVATION_CONFLICT_MESSAGE
   }
 
-  const usageHours = await getPhoneUsageHours(env, {
-    phone: reservationData.phone,
+  const usageHours = await getRepresentativeUsageHours(env, {
+    representativeName: reservationData.representativeName,
     reservationDate: reservationData.reservationDate,
     excludeReservationId: options.excludeReservationId,
   })
 
-  if (usageHours + reservationData.durationHours > 2) {
-    return '같은 전화번호는 하루 총 2시간까지만 예약할 수 있습니다. 다른 시간대 1시간 + 1시간 예약은 가능합니다.'
+  if (usageHours + reservationData.durationHours > MAX_DAILY_HOURS_PER_PERSON) {
+    return `같은 대표자는 하루 총 ${MAX_DAILY_HOURS_PER_PERSON}시간까지만 예약할 수 있습니다. 이미 이용한 인원은 추가 예약이 제한됩니다.`
   }
 
   return null
