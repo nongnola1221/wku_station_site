@@ -1,9 +1,11 @@
 import { requireAdmin } from '../../../_lib/auth.js'
 import { fail, ok, readJson } from '../../../_lib/http.js'
+import { incrementMetric } from '../../../_lib/metrics.js'
 
 export async function onRequestPatch(context) {
   const auth = await requireAdmin(context.request, context.env)
   if (auth.error) return auth.error
+  await incrementMetric(context.env, 'req:admin:station-status')
 
   const stationId = Number(context.params.id)
   if (!Number.isInteger(stationId) || stationId < 1) {

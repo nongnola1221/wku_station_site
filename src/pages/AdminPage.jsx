@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarDays, ListFilter, LogOut, Search } from 'lucide-react'
+import { AdminUsagePanel } from '../components/AdminUsagePanel'
 import { AdminExpandableSection } from '../components/AdminExpandableSection'
 import { AdminLoginForm } from '../components/AdminLoginForm'
 import { AdminOperationStatusModal } from '../components/AdminOperationStatusModal'
@@ -17,6 +18,8 @@ import { getToday } from '../lib/date'
 
 export function AdminPage() {
   const lastInteractionRef = useRef(Date.now())
+  const metricsTapTimeoutRef = useRef(null)
+  const metricsTapCountRef = useRef(0)
   const [token, setToken] = useState(localStorage.getItem(ADMIN_TOKEN_KEY) ?? '')
   const [credentials, setCredentials] = useState({ username: 'admin', password: '' })
   const [loginError, setLoginError] = useState('')
@@ -52,6 +55,8 @@ export function AdminPage() {
     currentPassword: '',
     nextPassword: '',
   })
+  const [usageOpen, setUsageOpen] = useState(false)
+  const [usageStats, setUsageStats] = useState(null)
 
   const fetchDashboard = useCallback(async (targetDate = date, authToken = token, options = {}) => {
     if (!authToken) return
@@ -129,6 +134,9 @@ export function AdminPage() {
       try {
         await fetchDashboard(date, token, { silent: true })
         await refreshTodaySummaryIfNeeded()
+        if (usageOpen) {
+          await fetchUsageStats(token)
+        }
       } finally {
         polling = false
       }
@@ -144,7 +152,7 @@ export function AdminPage() {
       window.removeEventListener('keydown', markInteraction)
       window.removeEventListener('focus', markInteraction)
     }
-  }, [dashboardReady, date, fetchDashboard, refreshTodaySummaryIfNeeded, token])
+  }, [dashboardReady, date, fetchDashboard, fetchUsageStats, refreshTodaySummaryIfNeeded, token, usageOpen])
 
   const filteredReservations = useMemo(() => {
     if (!query.trim()) return reservations
@@ -171,6 +179,12 @@ export function AdminPage() {
       setLoginLoading(false)
     }
   }
+
+  const fetchUsageStats = useCallback(async (authToken = token) => {
+    if (!authToken) return
+    const response = await api.getAdminUsage(authToken, { fresh: true })
+    setUsageStats(response.data)
+  }, [token])
 
   const handleToggleExamMode = async (checked) => {
     try {
@@ -326,6 +340,32 @@ export function AdminPage() {
     setToken('')
   }
 
+  const handleMetricsBadgePress = async () => {
+    window.clearTimeout(metricsTapTimeoutRef.current)
+    metricsTapCountRef.current += 1
+
+    if (metricsTapCountRef.current >= 4) {
+      metricsTapCountRef.current = 0
+      const nextOpen = !usageOpen
+      setUsageOpen(nextOpen)
+      if (!usageOpen) {
+        try {
+          await fetchUsageStats(token)
+        } catch (usageError) {
+          setActionError(usageError.message)
+        }
+      }
+    }
+
+    metricsTapTimeoutRef.current = window.setTimeout(() => {
+      metricsTapCountRef.current = 0
+    }, 900)
+  }
+
+  useEffect(() => () => {
+    window.clearTimeout(metricsTapTimeoutRef.current)
+  }, [])
+
   if (!token) {
     return (
       <main className="page page--admin page--admin-login">
@@ -344,7 +384,9 @@ export function AdminPage() {
     <main className="page page--admin">
       <section className="admin-hero panel">
         <div>
-          <StatusBadge variant="brand">관리자 대시보드</StatusBadge>
+          <button type="button" className="admin-hero__badge-button" onClick={handleMetricsBadgePress}>
+            <StatusBadge variant="brand">관리자 대시보드</StatusBadge>
+          </button>
           <h1>스테이션 대시보드</h1>
         </div>
         <div className="admin-hero__actions">
@@ -364,6 +406,8 @@ export function AdminPage() {
           </button>
         </div>
       </section>
+
+      {usageOpen ? <AdminUsagePanel stats={usageStats} /> : null}
 
       <section className="panel admin-toolbar">
         <label className="field field--date">

@@ -60,6 +60,11 @@ export const api = {
       cache: options.fresh ? 'no-store' : 'default',
       headers: { Authorization: `Bearer ${token}` },
     }),
+  getAdminUsage: (token, options = {}) =>
+    request(withFreshQuery('/api/admin/usage', options.fresh), {
+      cache: options.fresh ? 'no-store' : 'default',
+      headers: { Authorization: `Bearer ${token}` },
+    }),
   patchAdminReservation: (id, payload, token) =>
     request(`/api/admin/reservations/${id}`, {
       method: 'PATCH',

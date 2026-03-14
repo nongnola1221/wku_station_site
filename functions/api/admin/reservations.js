@@ -1,10 +1,12 @@
 import { requireAdmin } from '../../_lib/auth.js'
 import { fail, ok } from '../../_lib/http.js'
+import { incrementMetric } from '../../_lib/metrics.js'
 import { isValidDate } from '../../_lib/reservations.js'
 
 export async function onRequestGet(context) {
   const auth = await requireAdmin(context.request, context.env)
   if (auth.error) return auth.error
+  await incrementMetric(context.env, 'req:admin:reservations')
 
   const date = new URL(context.request.url).searchParams.get('date')
   if (!isValidDate(date)) {

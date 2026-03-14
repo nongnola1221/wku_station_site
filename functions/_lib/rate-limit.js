@@ -1,4 +1,5 @@
 import { fail } from './http.js'
+import { incrementMetric } from './metrics.js'
 
 function getClientIp(request) {
   const cfIp = request.headers.get('CF-Connecting-IP')
@@ -52,6 +53,8 @@ export async function enforceRateLimit(env, request, options) {
   if (requestCount <= options.limit) {
     return null
   }
+
+  await incrementMetric(env, 'rate_limited')
 
   const retryAfterSeconds = Math.max(1, Math.ceil(((Number(state?.window_start ?? windowStart) + options.windowMs) - now) / 1000))
 

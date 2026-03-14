@@ -1,4 +1,5 @@
 import { fail, okWithCache } from '../_lib/http.js'
+import { incrementMetric } from '../_lib/metrics.js'
 import { enforceRateLimit } from '../_lib/rate-limit.js'
 import { buildAvailability, getExamMode, isValidDate } from '../_lib/reservations.js'
 import { SITE_SETTING_DEFAULTS, SITE_SETTING_KEYS, getSettingsMap } from '../_lib/settings.js'
@@ -59,6 +60,8 @@ async function getPublicSettings(env) {
 }
 
 export async function onRequestGet(context) {
+  await incrementMetric(context.env, 'req:public:bootstrap')
+
   const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
     key: 'bootstrap',
     limit: 20,

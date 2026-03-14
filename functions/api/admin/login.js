@@ -1,8 +1,11 @@
 import { createToken, hashPassword } from '../../_lib/auth.js'
 import { fail, ok, readJson } from '../../_lib/http.js'
+import { incrementMetric } from '../../_lib/metrics.js'
 import { enforceRateLimit } from '../../_lib/rate-limit.js'
 
 export async function onRequestPost(context) {
+  await incrementMetric(context.env, 'req:admin:login')
+
   const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
     key: 'admin-login',
     limit: 5,

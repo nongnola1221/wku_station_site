@@ -1,5 +1,6 @@
 import { requireAdmin } from '../../../_lib/auth.js'
 import { fail, ok, readJson } from '../../../_lib/http.js'
+import { incrementMetric } from '../../../_lib/metrics.js'
 import {
   assertReservationRules,
   clearReservedTimeSlots,
@@ -12,6 +13,7 @@ import {
 export async function onRequestPatch(context) {
   const auth = await requireAdmin(context.request, context.env)
   if (auth.error) return auth.error
+  await incrementMetric(context.env, 'req:admin:update-reservation')
 
   const reservationId = Number(context.params.id)
   if (!Number.isInteger(reservationId)) {
@@ -129,6 +131,7 @@ export async function onRequestPatch(context) {
 export async function onRequestDelete(context) {
   const auth = await requireAdmin(context.request, context.env)
   if (auth.error) return auth.error
+  await incrementMetric(context.env, 'req:admin:delete-reservation')
 
   const reservationId = Number(context.params.id)
   if (!Number.isInteger(reservationId)) {

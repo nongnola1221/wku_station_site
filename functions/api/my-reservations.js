@@ -1,7 +1,10 @@
 import { fail, ok, readJson } from '../_lib/http.js'
+import { incrementMetric } from '../_lib/metrics.js'
 import { hashAccessToken, normalizeAccessTokens } from '../_lib/reservation-access.js'
 
 export async function onRequestPost(context) {
+  await incrementMetric(context.env, 'req:public:my-reservations')
+
   const payload = await readJson(context.request)
   if (!payload) {
     return fail(400, '요청 본문이 JSON 형식이어야 합니다.')
