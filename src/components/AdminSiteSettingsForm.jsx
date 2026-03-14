@@ -38,7 +38,7 @@ export function AdminSiteSettingsForm({ form, onChange, onSubmit, loading }) {
               type="text"
               value={form.heroBadge}
               onChange={(event) => onChange('heroBadge', event.target.value)}
-              placeholder="총학생회 공식 예약 서비스"
+              placeholder="스테이션 예약 사이트"
             />
           </label>
 
@@ -68,7 +68,7 @@ export function AdminSiteSettingsForm({ form, onChange, onSubmit, loading }) {
               type="text"
               value={form.reservationPolicy}
               onChange={(event) => onChange('reservationPolicy', event.target.value)}
-              placeholder="전화번호 기준 하루 최대 2시간..."
+              placeholder="대표자 기준 하루 최대 5시간..."
             />
           </label>
 
