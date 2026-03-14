@@ -6,7 +6,7 @@ export const GENERAL_OPEN_HOUR = 10
 export const GENERAL_CLOSE_HOUR = 17
 export const EXAM_OPEN_HOUR = 0
 export const EXAM_CLOSE_HOUR = 24
-export const MAX_RESERVATION_HOURS = 2
+export const MAX_RESERVATION_HOURS = 5
 
 export const DEFAULT_FORM = {
   stationId: 1,

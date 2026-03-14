@@ -2,7 +2,7 @@ export const GENERAL_OPEN_HOUR = 10
 export const GENERAL_CLOSE_HOUR = 17
 export const EXAM_OPEN_HOUR = 0
 export const EXAM_CLOSE_HOUR = 24
-export const MAX_RESERVATION_HOURS = 2
+export const MAX_RESERVATION_HOURS = 5
 export const MAX_DAILY_HOURS_PER_PERSON = 5
 export const RESERVATION_CONFLICT_MESSAGE =
   '죄송합니다. 해당 시간은 방금 다른 사용자가 먼저 예약했습니다. 다른 시간을 선택해주세요.'
