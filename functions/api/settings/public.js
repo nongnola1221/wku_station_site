@@ -1,11 +1,8 @@
 import { okWithCache } from '../../_lib/http.js'
-import { incrementMetric } from '../../_lib/metrics.js'
 import { getExamMode } from '../../_lib/reservations.js'
 import { SITE_SETTING_DEFAULTS, SITE_SETTING_KEYS, getSettingsMap } from '../../_lib/settings.js'
 
 export async function onRequestGet(context) {
-  await incrementMetric(context.env, 'req:public:settings')
-
   const examMode = await getExamMode(context.env)
   const values = await getSettingsMap(context.env, [
     SITE_SETTING_KEYS.retentionDays,

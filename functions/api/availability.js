@@ -1,10 +1,7 @@
 import { fail, ok } from '../_lib/http.js'
-import { incrementMetric } from '../_lib/metrics.js'
 import { buildAvailability, isValidDate } from '../_lib/reservations.js'
 
 export async function onRequestGet(context) {
-  await incrementMetric(context.env, 'req:public:availability')
-
   const date = context.request.url ? new URL(context.request.url).searchParams.get('date') : null
 
   if (!isValidDate(date)) {
