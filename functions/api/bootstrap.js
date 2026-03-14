@@ -1,4 +1,5 @@
 import { fail, okWithCache } from '../_lib/http.js'
+import { enforceRateLimit } from '../_lib/rate-limit.js'
 import { buildAvailability, getExamMode, isValidDate } from '../_lib/reservations.js'
 import { SITE_SETTING_DEFAULTS, SITE_SETTING_KEYS, getSettingsMap } from '../_lib/settings.js'
 
@@ -58,6 +59,16 @@ async function getPublicSettings(env) {
 }
 
 export async function onRequestGet(context) {
+  const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
+    key: 'bootstrap',
+    limit: 20,
+    windowMs: 10_000,
+    message: '요청이 너무 많습니다. 잠시 후 다시 새로고침해주세요.',
+  })
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const date = new URL(context.request.url).searchParams.get('date')
 
   if (!isValidDate(date)) {
