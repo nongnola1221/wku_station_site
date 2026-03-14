@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, X } from 'lucide-react'
 import { modalVariants } from '../animations/motion'
+import { MAX_RESERVATION_HOURS } from '../lib/constants'
 import { formatHourRange } from '../lib/date'
 
-const durationOptions = [1, 2]
+const durationOptions = Array.from({ length: MAX_RESERVATION_HOURS }, (_, index) => index + 1)
 
 export function ReservationDetailModal({
   reservation,
