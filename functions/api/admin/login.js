@@ -1,7 +1,18 @@
 import { createToken, hashPassword } from '../../_lib/auth.js'
 import { fail, ok, readJson } from '../../_lib/http.js'
+import { enforceRateLimit } from '../../_lib/rate-limit.js'
 
 export async function onRequestPost(context) {
+  const rateLimitResponse = await enforceRateLimit(context.env, context.request, {
+    key: 'admin-login',
+    limit: 5,
+    windowMs: 60_000,
+    message: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.',
+  })
+  if (rateLimitResponse) {
+    return rateLimitResponse
+  }
+
   const payload = await readJson(context.request)
   if (!payload?.username || !payload?.password) {
     return fail(400, '아이디와 비밀번호를 모두 입력해야 합니다.')

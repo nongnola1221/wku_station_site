@@ -26,7 +26,7 @@ export function okWithCache(data, cacheControl, init = {}) {
   )
 }
 
-export function fail(status, message, details = null) {
+export function fail(status, message, details = null, init = {}) {
   return json(
     {
       success: false,
@@ -35,7 +35,7 @@ export function fail(status, message, details = null) {
         details,
       },
     },
-    { status },
+    { status, ...init },
   )
 }
 
