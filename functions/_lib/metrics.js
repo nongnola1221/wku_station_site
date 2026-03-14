@@ -54,8 +54,7 @@ export function buildUsageSummary(metricsMap) {
           (
             Number(metricsMap['req:public:bootstrap'] ?? 0) +
             Number(metricsMap['req:public:create-reservation'] ?? 0) +
-            Number(metricsMap['req:public:my-reservations'] ?? 0) +
-            Number(metricsMap['req:public:cancel-my-reservation'] ?? 0)
+            Number(metricsMap['req:admin:reservations'] ?? 0)
           ) / reservationCreateCount,
         ),
       )

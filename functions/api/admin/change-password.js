@@ -1,11 +1,8 @@
 import { hashPassword, requireAdmin } from '../../_lib/auth.js'
 import { fail, ok, readJson } from '../../_lib/http.js'
-import { incrementMetric } from '../../_lib/metrics.js'
-
 export async function onRequestPost(context) {
   const auth = await requireAdmin(context.request, context.env)
   if (auth.error) return auth.error
-  await incrementMetric(context.env, 'req:admin:change-password')
 
   const payload = await readJson(context.request)
   const currentPassword = String(payload?.currentPassword ?? '')

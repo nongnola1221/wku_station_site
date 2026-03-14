@@ -1,9 +1,5 @@
 import { okWithCache } from '../_lib/http.js'
-import { incrementMetric } from '../_lib/metrics.js'
-
 export async function onRequestGet(context) {
-  await incrementMetric(context.env, 'req:public:stations')
-
   const result = await context.env.DB.prepare(
     `
       SELECT

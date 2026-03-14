@@ -1,11 +1,8 @@
 import { requireAdmin } from '../../../_lib/auth.js'
 import { fail, ok, readJson } from '../../../_lib/http.js'
-import { incrementMetric } from '../../../_lib/metrics.js'
-
 export async function onRequestPatch(context) {
   const auth = await requireAdmin(context.request, context.env)
   if (auth.error) return auth.error
-  await incrementMetric(context.env, 'req:admin:exam-mode')
 
   const payload = await readJson(context.request)
   if (typeof payload?.examMode !== 'boolean') {
