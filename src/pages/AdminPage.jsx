@@ -117,6 +117,12 @@ export function AdminPage() {
     setTodayReservations(response.data.reservations)
   }, [date, reservations, todaySummaryOpen, token])
 
+  const fetchUsageStats = useCallback(async (authToken = token) => {
+    if (!authToken) return
+    const response = await api.getAdminUsage(authToken, { fresh: true })
+    setUsageStats(response.data)
+  }, [token])
+
   useEffect(() => {
     if (!token || !dashboardReady) return undefined
 
@@ -179,12 +185,6 @@ export function AdminPage() {
       setLoginLoading(false)
     }
   }
-
-  const fetchUsageStats = useCallback(async (authToken = token) => {
-    if (!authToken) return
-    const response = await api.getAdminUsage(authToken, { fresh: true })
-    setUsageStats(response.data)
-  }, [token])
 
   const handleToggleExamMode = async (checked) => {
     try {
