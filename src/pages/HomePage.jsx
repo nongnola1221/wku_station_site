@@ -12,7 +12,13 @@ import { DEFAULT_FORM, MAX_RESERVATION_HOURS } from '../lib/constants'
 import { api } from '../lib/api'
 import { useReservationData } from '../hooks/useReservationData'
 import { formatHourRange, getToday } from '../lib/date'
-import { clearStoredReservationTokens, getStoredReservationTokens, storeReservationToken } from '../lib/reservationTokens'
+import {
+  clearStoredReservationTokens,
+  filterReservationTokensByHashes,
+  getStoredReservationTokens,
+  setStoredReservationTokens,
+  storeReservationToken,
+} from '../lib/reservationTokens'
 
 function buildPublicSnapshotValue({ stations, settings, availability }) {
   return JSON.stringify({
@@ -160,12 +166,20 @@ export function HomePage() {
     try {
       const response = await api.getMyReservations(storedTokens)
       const reservations = response.data.reservations ?? []
+      const activeTokenHashes = response.data.activeTokenHashes ?? []
+      const activeTokens = await filterReservationTokensByHashes(storedTokens, activeTokenHashes)
+
+      if (activeTokens.length) {
+        setStoredReservationTokens(activeTokens)
+      } else {
+        clearStoredReservationTokens()
+      }
+
       setMyReservations(reservations)
       if (reservations.length && options.autoOpen !== false) {
         setMyReservationsOpen(true)
       } else {
         if (!reservations.length) {
-          clearStoredReservationTokens()
           setMyReservationsOpen(false)
         }
       }
